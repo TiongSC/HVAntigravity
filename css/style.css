@@ -1,0 +1,192 @@
+:root {
+    /* "Young and Fun" Palette */
+    --color-bg: #1A0B2E;
+    /* Dark Purple Background */
+    --color-primary: #FF0099;
+    /* Hot Pink */
+    --color-secondary: #00FFFF;
+    /* Cyan */
+    --color-accent: #FFD700;
+    /* Gold/Yellow for VIP */
+    --color-text: #FFFFFF;
+    --color-text-muted: #B8B8D0;
+    --color-glass: rgba(255, 255, 255, 0.1);
+    --color-glass-border: rgba(255, 255, 255, 0.2);
+
+    --font-main: 'Poppins', sans-serif;
+
+    --shadow-neon: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary);
+    --shadow-vip: 0 0 10px var(--color-accent), 0 0 20px var(--color-accent);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-main);
+    overflow-x: hidden;
+}
+
+#app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 1rem;
+    background: var(--color-glass);
+    border-radius: 20px;
+    border: 1px solid var(--color-glass-border);
+    backdrop-filter: blur(10px);
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 2rem;
+    background: linear-gradient(45deg, var(--color-primary), var(--color-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(255, 0, 153, 0.3);
+    letter-spacing: -1px;
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    font-family: var(--font-main);
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cta-btn {
+    background: linear-gradient(45deg, var(--color-primary), #FF5E00);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.cta-btn:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-neon);
+}
+
+.secondary-btn {
+    background: transparent;
+    border: 2px solid var(--color-secondary);
+    color: var(--color-secondary);
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+.secondary-btn:hover {
+    background: var(--color-secondary);
+    color: var(--color-bg);
+    box-shadow: 0 0 15px var(--color-secondary);
+}
+
+/* Auth Modal Styles */
+.auth-container {
+    padding: 20px;
+    text-align: center;
+}
+
+.auth-container h2 {
+    margin-bottom: 20px;
+    color: var(--color-secondary);
+}
+
+.auth-container input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-glass-border);
+    border-radius: 10px;
+    color: white;
+    font-family: var(--font-main);
+}
+
+.auth-container input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary);
+}
+
+.toggle-auth {
+    margin-top: 15px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.error-msg {
+    color: #ff4444;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    min-height: 20px;
+}
+
+.nav-link {
+    margin-right: 15px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: var(--color-secondary);
+    text-decoration: underline;
+}
+
+/* Auth Inputs Redesign - already handled generally by #createEventForm input, but let's ensure auth specific is same */
+#authForm input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-glass-border);
+    border-radius: 10px;
+    color: white;
+    color: white;
+    font-family: var(--font-main);
+}
+
+/* Fix for native date/time pickers in dark mode */
+input[type="date"],
+input[type="time"] {
+    color-scheme: dark;
+    /* Supported in modern browsers */
+    cursor: pointer;
+}
+
+/* Delete Button Styling */
+.delete-event-btn {
+    z-index: 100;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.delete-event-btn:hover {
+    background: rgba(255, 68, 68, 0.2) !important;
+}

@@ -1,0 +1,128 @@
+/* Calendar Controls */
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#currentMonthYear {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.nav-btn {
+    background: var(--color-glass);
+    color: var(--color-text);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-glass-border);
+}
+
+.nav-btn:hover {
+    background: var(--color-primary);
+    transform: scale(1.1);
+}
+
+/* Calendar Grid */
+.calendar-container {
+    background: var(--color-glass);
+    border-radius: 30px;
+    padding: 20px;
+    border: 1px solid var(--color-glass-border);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.day-cell {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 15px;
+    min-height: 120px;
+    padding: 10px;
+    position: relative;
+    transition: background 0.2s;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.day-cell:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.day-cell.other-month {
+    opacity: 0.3;
+}
+
+.day-number {
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.day-cell.today .day-number {
+    color: var(--color-secondary);
+    text-shadow: 0 0 10px var(--color-secondary);
+}
+
+.day-cell.today {
+    background: rgba(0, 255, 255, 0.1);
+    box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.3);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+/* Event Strips in Calendar */
+.event-strip {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.event-strip:hover {
+    transform: translateX(2px);
+    z-index: 2;
+}
+
+.event-strip.vip {
+    background: var(--color-accent);
+    color: #000;
+    font-weight: 800;
+    box-shadow: 0 0 5px var(--color-accent);
+    z-index: 10;
+}
+
+.event-strip.more-events {
+    background: transparent;
+    color: var(--color-text-muted);
+    font-style: italic;
+    text-align: center;
+}
