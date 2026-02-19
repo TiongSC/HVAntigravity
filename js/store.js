@@ -1,6 +1,6 @@
 import { Utils } from './utils.js';
 
-const API_URL = 'http://localhost:3000/api'; // Adjust based on environment
+const API_URL = '/api'; // Relative path for same-origin serving
 
 class Store {
     constructor() {
