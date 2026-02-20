@@ -1,14 +1,15 @@
 import { Utils } from './utils.js';
 
-const API_URL = '/api'; // Relative path for same-origin serving
+const API_URL = '/api';
 
 class Store {
     constructor() {
         this.state = {
-            currentUser: JSON.parse(localStorage.getItem('hv_user')) || null, // Keep user in LS for session persistence
+            currentUser: JSON.parse(localStorage.getItem('hv_user')) || null,
             events: [],
             currentDate: new Date()
         };
+
         this.listeners = [];
         this.init();
     }
@@ -16,6 +17,7 @@ class Store {
     async init() {
         if (this.state.currentUser) {
             await this.fetchEvents();
+            this.notify(); // ensure UI sync on page load
         }
     }
 
@@ -27,7 +29,8 @@ class Store {
         this.listeners.forEach(listener => listener(this.state));
     }
 
-    // --- Auth Actions ---
+    // ---------------- AUTH ----------------
+
     async login(username, password) {
         try {
             const res = await fetch(`${API_URL}/auth/login`, {
@@ -35,17 +38,26 @@ class Store {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
+
+            if (!res.ok) {
+                return { success: false, message: 'Server error' };
+            }
+
             const data = await res.json();
 
             if (data.success) {
                 this.state.currentUser = data.user;
                 localStorage.setItem('hv_user', JSON.stringify(data.user));
+
                 await this.fetchEvents();
                 this.notify();
+
                 return { success: true };
             }
+
             return { success: false, message: data.message };
         } catch (err) {
+            console.error(err);
             return { success: false, message: 'Network error' };
         }
     }
@@ -57,36 +69,51 @@ class Store {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
             });
+
+            if (!res.ok) {
+                return { success: false, message: 'Server error' };
+            }
+
             const data = await res.json();
 
             if (data.success) {
-                // Auto login after signup
-                return this.login(username, password);
+                return await this.login(username, password);
             }
+
             return { success: false, message: data.message };
         } catch (err) {
+            console.error(err);
             return { success: false, message: 'Network error' };
         }
     }
 
     logout() {
         this.state.currentUser = null;
+        this.state.events = [];
         localStorage.removeItem('hv_user');
         this.notify();
-        window.location.reload();
     }
 
-    // --- Event Actions ---
+    // ---------------- EVENTS ----------------
+
     async fetchEvents() {
         try {
             const res = await fetch(`${API_URL}/events`);
+
+            if (!res.ok) {
+                console.error('Failed to fetch events');
+                return;
+            }
+
             const data = await res.json();
+
             if (Array.isArray(data)) {
                 this.state.events = data.map(e => ({
                     ...e,
-                    startDate: new Date(e.startDate), // Convert strings back to Date objects
+                    startDate: new Date(e.startDate),
                     endDate: new Date(e.endDate)
                 }));
+
                 this.notify();
             }
         } catch (err) {
@@ -107,12 +134,14 @@ class Store {
                     createdBy: user.username
                 })
             });
+
             const data = await res.json();
 
             if (data.success) {
-                await this.fetchEvents(); // Refresh list
+                await this.fetchEvents();
                 return { success: true };
             }
+
             return { success: false, message: data.message };
         } catch (err) {
             return { success: false, message: 'Network error' };
@@ -129,18 +158,19 @@ class Store {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: user.username })
             });
+
             const data = await res.json();
 
             if (data.success) {
                 await this.fetchEvents();
                 return { success: true };
             }
+
             return { success: false, message: data.message };
         } catch (err) {
             return { success: false, message: 'Network error' };
         }
     }
-
 
     getEventsForDate(dateStr) {
         return this.state.events.filter(event =>
@@ -148,10 +178,15 @@ class Store {
         );
     }
 
-    // --- Calendar Navigation ---
+    // ---------------- CALENDAR ----------------
+
     changeMonth(direction) {
-        const d = new Date(this.state.currentDate);
-        d.setMonth(d.getMonth() + direction);
+        const d = new Date(
+            this.state.currentDate.getFullYear(),
+            this.state.currentDate.getMonth() + direction,
+            1
+        );
+
         this.state.currentDate = d;
         this.notify();
     }

@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = !isLogin ? document.getElementById('authEmail').value : null;
         const errorDiv = document.getElementById('authError');
 
+        errorDiv.textContent = '';
+
         const result = isLogin
             ? store.login(username, password)
             : store.signup(username, email, password);
@@ -173,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // -- Event Creation --
-    createEventForm.addEventListener('submit', (e) => {
+    createEventForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = document.getElementById('eventTitle').value;
         const description = document.getElementById('eventDescription').value;
@@ -188,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const result = store.addEvent({
+        const result = await store.addEvent({
             title, description, startDate, endDate, startTime, endTime
         });
 
