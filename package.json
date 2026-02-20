@@ -1,5 +1,4 @@
 {
-
   "name": "hvantigravity",
   "version": "1.0.0",
   "main": "index.js",
@@ -18,5 +17,6 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.23.0",
     "tall": "^8.0.0"
-  }
+  },
+  "type": "module"
 }

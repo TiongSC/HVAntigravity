@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function handleAuthSubmit(e, isLogin) {
+    async function handleAuthSubmit(e, isLogin) {
         e.preventDefault();
         const username = document.getElementById('authUsername').value;
         const password = document.getElementById('authPassword').value;
@@ -77,9 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         errorDiv.textContent = '';
 
-        const result = isLogin
+        const result = await (isLogin
             ? store.login(username, password)
-            : store.signup(username, email, password);
+            : store.signup(username, email, password));
 
         if (result.success) {
             authModal.classList.add('hidden');
@@ -205,9 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // -- Admin Tools (Hidden shortcut for demo) --
     // Type 'vip' in console to make current user VIP
     window.makeMeVip = () => {
-        if (store.state.currentUser) {
-            store.setVipStatus(store.state.currentUser.username, true);
-            console.log("You are now a VIP!");
-        }
+        console.warn('makeMeVip demo shortcut is not implemented on this build.');
     };
 });

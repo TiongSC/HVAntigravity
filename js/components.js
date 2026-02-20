@@ -1,4 +1,5 @@
 import { store } from './store.js';
+import { Utils } from './utils.js';
 
 export function renderDayCell(dayNum, events, isToday, dateStr) {
     const cell = document.createElement('div');
@@ -58,10 +59,10 @@ function openDayModal(dateStr, events) {
                 <div class="event-item" style="position:relative; background:rgba(255,255,255,0.05); padding:10px; margin-bottom:10px; border-radius:8px; border-left: 4px solid ${event.isVip ? 'var(--color-accent)' : 'var(--color-primary)'}">
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <h3 style="color:${event.isVip ? 'var(--color-accent)' : 'white'}; margin-bottom:5px; padding-right:30px;">${event.title} ${event.isVip ? '⭐' : ''}</h3>
-                        ${isOwner ? `<button class="delete-event-btn" onclick="event.stopPropagation(); window.deleteEvent('${event.id}')" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.2); border:none; color:#ff4444; cursor:pointer; font-size:1.2rem; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center;">&times;</button>` : ''}
+                        ${isOwner ? `<button class="delete-event-btn" onclick="event.stopPropagation(); window.deleteEvent('${event._id || event.id}')" style="position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.2); border:none; color:#ff4444; cursor:pointer; font-size:1.2rem; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center;">&times;</button>` : ''}
                     </div>
-                    <p style="font-size:0.9rem; color:#ddd;">From: ${event.startDate} ${event.startTime}</p>
-                    <p style="font-size:0.9rem; color:#ddd;">To: ${event.endDate} ${event.endTime}</p>
+                    <p style="font-size:0.9rem; color:#ddd;">From: ${Utils.formatDate(event.startDate)} ${event.startTime || ''}</p>
+                    <p style="font-size:0.9rem; color:#ddd;">To: ${Utils.formatDate(event.endDate)} ${event.endTime || ''}</p>
                     <p style="margin-top:5px; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; max-width: 100%;">${event.description}</p>
                     <small style="color:var(--color-text-muted)">Posted by: ${event.createdBy}</small>
                 </div>
@@ -91,8 +92,8 @@ function openDayModal(dateStr, events) {
         confirmModal.classList.remove('hidden');
 
         // Handle Confirmation
-        confirmBtn.onclick = () => {
-            const result = store.deleteEvent(id);
+        confirmBtn.onclick = async () => {
+            const result = await store.deleteEvent(id);
             if (result.success) {
                 // Refresh modal content (Close day modal to force refresh of calendar)
                 modal.classList.add('hidden');
@@ -134,7 +135,7 @@ function openCreateForm(dateStr) {
         // Enforce limit of 2 events per DAY (based on start date)
         const userEventsOnDate = store.state.events.filter(e =>
             e.createdBy === user.username &&
-            e.startDate === dateStr
+            Utils.formatDate(e.startDate) === dateStr
         );
         const used = userEventsOnDate.length;
         const max = 2; // Match store logic
