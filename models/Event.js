@@ -14,6 +14,14 @@ const EventSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+    startTime: {
+        type: String,
+        default: ''
+    },
+    endTime: {
+        type: String,
+        default: ''
+    },
     location: String,
     participants: {
         type: Number,

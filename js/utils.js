@@ -33,10 +33,13 @@ export const Utils = {
 
     // Sort events: VIP first, then by time
     sortEvents(events) {
-        return events.sort((a, b) => {
+        return [...events].sort((a, b) => {
             if (a.isVip && !b.isVip) return -1;
             if (!a.isVip && b.isVip) return 1;
-            return a.startTime.localeCompare(b.startTime);
+
+            const timeA = (a.startTime || '').toString();
+            const timeB = (b.startTime || '').toString();
+            return timeA.localeCompare(timeB);
         });
     }
 };
