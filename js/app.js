@@ -2,8 +2,10 @@ import { store } from './store.js';
 import { Calendar } from './calendar.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Calendar
     Calendar.init();
 
+    // -- Global UI Elements --
     const prevBtn = document.getElementById('prevMonth');
     const nextBtn = document.getElementById('nextMonth');
     const userControls = document.getElementById('userControls');
@@ -12,50 +14,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const createEventModal = document.getElementById('createEventModal');
     const createEventForm = document.getElementById('createEventForm');
 
-    const mainContent = document.querySelector('main');
-    const pageContainer = document.createElement('div');
-    pageContainer.id = 'pageContainer';
-    mainContent.parentNode.insertBefore(pageContainer, mainContent.nextSibling);
-
+    // -- Navigation --
     prevBtn.addEventListener('click', () => store.changeMonth(-1));
     nextBtn.addEventListener('click', () => store.changeMonth(1));
 
-    function showCalendar() {
-        mainContent.style.display = 'block';
-        pageContainer.style.display = 'none';
-        pageContainer.innerHTML = '';
-    }
-
-    function handleLogout() {
-        store.logout();
-        authModal.classList.add('hidden');
-        createEventModal.classList.add('hidden');
-        showCalendar();
-        renderUserControls();
-    }
-
+    // -- User Controls (Header) --
     function renderUserControls() {
         const user = store.state.currentUser;
-
         if (user) {
             userControls.innerHTML = `
-                <span class="nav-link" onclick="showPage('about')">About</span>
-                <span class="nav-link" onclick="showPage('faq')">FAQ</span>
-                <span class="nav-link" onclick="showPage('account')" style="margin-right:15px;">My Account</span>
                 <span style="margin-right:10px;">Hi, ${user.username} ${user.role === 'vip' ? '⭐' : ''}</span>
                 <button id="logoutBtn" class="secondary-btn">Logout</button>
             `;
-            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('logoutBtn').addEventListener('click', () => store.logout());
         } else {
             userControls.innerHTML = `
-                <span class="nav-link" onclick="showPage('about')">About</span>
-                <span class="nav-link" onclick="showPage('faq')">FAQ</span>
                 <button id="loginBtn" class="secondary-btn">Sign In / Up</button>
             `;
             document.getElementById('loginBtn').addEventListener('click', () => openAuthModal());
         }
     }
 
+    // Initial Render
+    renderUserControls();
+    store.subscribe(renderUserControls);
+
+    // -- Auth Modal Logic --
     function openAuthModal(mode = 'login') {
         renderAuthForm(mode);
         authModal.classList.remove('hidden');
@@ -75,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="toggle-auth">${isLogin ? 'New here? Create account' : 'Already have an account? Sign In'}</p>
         `;
 
+        // Listeners for the dynamic form
         const form = document.getElementById('authForm');
         form.addEventListener('submit', (e) => handleAuthSubmit(e, isLogin));
 
@@ -83,47 +68,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function handleAuthSubmit(e, isLogin) {
+    function handleAuthSubmit(e, isLogin) {
         e.preventDefault();
-
-        const username = document.getElementById('authUsername').value.trim();
+        const username = document.getElementById('authUsername').value;
         const password = document.getElementById('authPassword').value;
-        const email = !isLogin ? document.getElementById('authEmail').value.trim() : null;
+        const email = !isLogin ? document.getElementById('authEmail').value : null;
         const errorDiv = document.getElementById('authError');
-        const submitBtn = e.target.querySelector('button[type="submit"]');
 
         errorDiv.textContent = '';
-        submitBtn.disabled = true;
 
-        const result = await (isLogin
+        const result = isLogin
             ? store.login(username, password)
-            : store.signup(username, email, password));
-
-        submitBtn.disabled = false;
+            : store.signup(username, email, password);
 
         if (result.success) {
             authModal.classList.add('hidden');
-            authFormsContainer.innerHTML = '';
-            showCalendar();
-            renderUserControls();
         } else {
             errorDiv.textContent = result.message;
         }
     }
 
+    // -- Navigation & New Pages --
+    // We'll effectively hide the main calendar and show these pages
+    const mainContent = document.querySelector('main');
+    const pageContainer = document.createElement('div');
+    pageContainer.id = 'pageContainer';
+    // Insert after main
+    mainContent.parentNode.insertBefore(pageContainer, mainContent.nextSibling);
+
     window.showPage = (pageId) => {
+        // Simple routing: Hide main, show page content
         mainContent.style.display = 'none';
         pageContainer.style.display = 'block';
         pageContainer.innerHTML = renderPageContent(pageId);
     };
 
     window.showCalendar = () => {
-        showCalendar();
+        mainContent.style.display = 'block';
+        pageContainer.style.display = 'none';
+        pageContainer.innerHTML = '';
     };
 
     function renderPageContent(pageId) {
         let content = `<button onclick="window.showCalendar()" class="secondary-btn" style="margin-bottom:20px;">&larr; Back to Calendar</button>`;
-
         if (pageId === 'about') {
             content += `
                 <div class="glass" style="padding:40px; border-radius:20px;">
@@ -144,15 +131,37 @@ document.addEventListener('DOMContentLoaded', () => {
             content += `
                 <div class="glass" style="padding:40px; border-radius:20px;">
                     <h1>My Account</h1>
-                    <p style="margin-top:20px;"><strong>Username:</strong> ${user?.username || 'N/A'}</p>
+                    <p style="margin-top:20px;"><strong>Username:</strong> ${user?.username}</p>
                     <p><strong>Email:</strong> ${user?.email || 'N/A'}</p>
-                    <p><strong>Role:</strong> ${user?.role || 'N/A'}</p>
+                    <p><strong>Role:</strong> ${user?.role}</p>
                 </div>`;
         }
-
         return content;
     }
 
+    // -- User Controls (Header) --
+    function renderUserControls() {
+        const user = store.state.currentUser;
+        if (user) {
+            userControls.innerHTML = `
+                <span class="nav-link" onclick="showPage('about')">About</span>
+                <span class="nav-link" onclick="showPage('faq')">FAQ</span>
+                <span class="nav-link" onclick="showPage('account')" style="margin-right:15px;">My Account</span>
+                <span style="margin-right:10px;">Hi, ${user.username} ${user.role === 'vip' ? '⭐' : ''}</span>
+                <button id="logoutBtn" class="secondary-btn">Logout</button>
+            `;
+            document.getElementById('logoutBtn').addEventListener('click', () => store.logout());
+        } else {
+            userControls.innerHTML = `
+                <span class="nav-link" onclick="showPage('about')">About</span>
+                <span class="nav-link" onclick="showPage('faq')">FAQ</span>
+                <button id="loginBtn" class="secondary-btn">Sign In / Up</button>
+            `;
+            document.getElementById('loginBtn').addEventListener('click', () => openAuthModal());
+        }
+    }
+
+    // -- Modal Closing --
     document.querySelectorAll('.close-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.target.closest('.modal').classList.add('hidden');
@@ -165,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // -- Event Creation --
     createEventForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = document.getElementById('eventTitle').value;
@@ -174,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const startTime = document.getElementById('eventStartTime').value;
         const endTime = document.getElementById('eventEndTime').value;
 
+        // Basic Validation
         if (new Date(startDate) > new Date(endDate)) {
             document.getElementById('eventError').textContent = 'End date cannot be before start date';
             return;
@@ -191,15 +202,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // -- Admin Tools (Hidden shortcut for demo) --
+    // Type 'vip' in console to make current user VIP
     window.makeMeVip = () => {
-        console.warn('makeMeVip demo shortcut is not implemented on this build.');
-    };
-
-    renderUserControls();
-    store.subscribe(() => {
-        renderUserControls();
-        if (!store.state.currentUser && pageContainer.style.display === 'block') {
-            showCalendar();
+        if (store.state.currentUser) {
+            store.setVipStatus(store.state.currentUser.username, true);
+            console.log("You are now a VIP!");
         }
-    });
+    };
 });

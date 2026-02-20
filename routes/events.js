@@ -7,7 +7,7 @@ const router = express.Router();
 // Create Event
 router.post('/', async (req, res) => {
     try {
-        const { title, description, startDate, endDate, startTime, endTime, location, createdBy } = req.body;
+        const { title, description, startDate, endDate, location, createdBy } = req.body;
 
         const user = await User.findOne({ username: createdBy });
         if (!user) return res.status(404).json({ success: false, message: 'User not found' });
@@ -28,7 +28,7 @@ router.post('/', async (req, res) => {
         }
 
         const newEvent = new Event({
-            title, description, startDate, endDate, startTime, endTime, location, createdBy,
+            title, description, startDate, endDate, location, createdBy,
             isVip: user.role === 'vip' || user.role === 'admin'
         });
 
