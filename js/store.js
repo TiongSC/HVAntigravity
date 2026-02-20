@@ -36,14 +36,14 @@ class Store {
             const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ username: username.trim(), password })
             });
 
-            if (!res.ok) {
-                return { success: false, message: 'Server error' };
-            }
-
             const data = await res.json();
+
+            if (!res.ok) {
+                return { success: false, message: data.message || 'Server error' };
+            }
 
             if (data.success) {
                 this.state.currentUser = data.user;
@@ -67,14 +67,14 @@ class Store {
             const res = await fetch(`${API_URL}/auth/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
+                body: JSON.stringify({ username: username.trim(), email: email.trim(), password })
             });
 
-            if (!res.ok) {
-                return { success: false, message: 'Server error' };
-            }
-
             const data = await res.json();
+
+            if (!res.ok) {
+                return { success: false, message: data.message || 'Server error' };
+            }
 
             if (data.success) {
                 return await this.login(username, password);
