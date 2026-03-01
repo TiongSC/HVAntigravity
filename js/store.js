@@ -76,13 +76,48 @@ class Store {
                 return { success: false, message: data.message || 'Server error' };
             }
 
-            if (data.success) {
-                return await this.login(username, password);
-            }
-
-            return { success: false, message: data.message };
+            return { success: true, message: data.message };
         } catch (err) {
             console.error(err);
+            return { success: false, message: 'Network error' };
+        }
+    }
+
+    async verifyEmail(username, token) {
+        try {
+            const res = await fetch(`${API_URL}/auth/verify-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, token })
+            });
+            return await res.json();
+        } catch (err) {
+            return { success: false, message: 'Network error' };
+        }
+    }
+
+    async forgotPassword(email) {
+        try {
+            const res = await fetch(`${API_URL}/auth/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            return await res.json();
+        } catch (err) {
+            return { success: false, message: 'Network error' };
+        }
+    }
+
+    async resetPassword(email, otp, newPassword) {
+        try {
+            const res = await fetch(`${API_URL}/auth/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp, newPassword })
+            });
+            return await res.json();
+        } catch (err) {
             return { success: false, message: 'Network error' };
         }
     }
@@ -111,7 +146,8 @@ class Store {
                 this.state.events = data.map(e => ({
                     ...e,
                     startDate: new Date(e.startDate),
-                    endDate: new Date(e.endDate)
+                    endDate: new Date(e.endDate),
+                    createdAt: e.createdAt ? new Date(e.createdAt) : null
                 }));
 
                 this.notify();

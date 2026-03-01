@@ -14,12 +14,13 @@ router.post('/', async (req, res) => {
 
         // Limit Check: Max 2 events per day for Non-Admin
         if (user.role !== 'admin') {
-            const startOfDay = new Date(startDate); startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date(startDate); endOfDay.setHours(23, 59, 59, 999);
+            const today = new Date();
+            const startOfDay = new Date(today); startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(today); endOfDay.setHours(23, 59, 59, 999);
 
             const count = await Event.countDocuments({
                 createdBy: user.username,
-                startDate: { $gte: startOfDay, $lte: endOfDay }
+                createdAt: { $gte: startOfDay, $lte: endOfDay }
             });
 
             if (count >= 2) {

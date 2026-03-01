@@ -63,41 +63,118 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderAuthForm(mode) {
         const isLogin = mode === 'login';
-        authFormsContainer.innerHTML = `
-            <h2>${isLogin ? 'Welcome Back' : 'Join the Vibe'}</h2>
-            <form id="authForm">
-                <input type="text" id="authUsername" placeholder="Username" required>
-                ${!isLogin ? '<input type="email" id="authEmail" placeholder="Email Address" required>' : ''}
-                <input type="password" id="authPassword" placeholder="Password" required>
-                <button type="submit" class="cta-btn" style="width:100%">${isLogin ? 'Sign In' : 'Sign Up'}</button>
+        const isSignup = mode === 'signup';
+        const isVerify = mode === 'verify';
+        const isForgot = mode === 'forgot';
+        const isReset = mode === 'reset';
+
+        let html = `<h2>`;
+        if (isLogin) html += 'Welcome Back';
+        if (isSignup) html += 'Join the Vibe';
+        if (isVerify) html += 'Verify Email';
+        if (isForgot) html += 'Forgot Password';
+        if (isReset) html += 'Reset Password';
+        html += `</h2><form id="authForm">`;
+
+        if (isLogin || isSignup || isVerify) {
+            html += `<input type="text" id="authUsername" placeholder="Username" required ${isVerify ? 'readonly' : ''}>`;
+        }
+        if (isSignup || isForgot || isReset) {
+            html += `<input type="email" id="authEmail" placeholder="Email Address" required ${isReset ? 'readonly' : ''}>`;
+        }
+        if (isVerify) {
+            html += `<input type="text" id="authOTP" placeholder="Verification Token" required>`;
+        }
+        if (isForgot) {
+            // Only email needed
+        }
+        if (isReset) {
+            html += `<input type="text" id="authOTP" placeholder="OTP from Email" required>`;
+        }
+        if (isLogin || isSignup || isReset) {
+            html += `<input type="password" id="authPassword" placeholder="${isReset ? 'New Password' : 'Password'}" required>`;
+        }
+
+        let btnText = 'Submit';
+        if (isLogin) btnText = 'Sign In';
+        if (isSignup) btnText = 'Sign Up';
+        if (isVerify) btnText = 'Verify';
+        if (isForgot) btnText = 'Send OTP';
+        if (isReset) btnText = 'Update Password';
+
+        html += `<button type="submit" class="cta-btn" style="width:100%">${btnText}</button>
                 <div id="authError" class="error-msg"></div>
-            </form>
-            <p class="toggle-auth">${isLogin ? 'New here? Create account' : 'Already have an account? Sign In'}</p>
-        `;
+                <div id="authSuccess" class="success-msg" style="color:var(--color-accent); margin-top:10px; font-size:0.9rem;"></div>
+            </form>`;
+
+        if (isLogin) {
+            html += `<p class="toggle-auth">New here? <span class="link-btn" onclick="window.renderAuthForm('signup')">Create account</span></p>`;
+            html += `<p class="toggle-auth"><span class="link-btn" onclick="window.renderAuthForm('forgot')">Forgot password?</span></p>`;
+        } else if (isSignup) {
+            html += `<p class="toggle-auth">Already have an account? <span class="link-btn" onclick="window.renderAuthForm('login')">Sign In</span></p>`;
+        } else {
+            html += `<p class="toggle-auth"><span class="link-btn" onclick="window.renderAuthForm('login')">Back to Login</span></p>`;
+        }
+
+        authFormsContainer.innerHTML = html;
 
         const form = document.getElementById('authForm');
-        form.addEventListener('submit', (e) => handleAuthSubmit(e, isLogin));
-
-        document.querySelector('.toggle-auth').addEventListener('click', () => {
-            renderAuthForm(isLogin ? 'signup' : 'login');
-        });
+        form.addEventListener('submit', (e) => handleAuthSubmit(e, mode));
     }
 
-    async function handleAuthSubmit(e, isLogin) {
-        e.preventDefault();
+    // Expose for internal onclicks
+    window.renderAuthForm = renderAuthForm;
 
-        const username = document.getElementById('authUsername').value.trim();
-        const password = document.getElementById('authPassword').value;
-        const email = !isLogin ? document.getElementById('authEmail').value.trim() : null;
+    async function handleAuthSubmit(e, mode) {
+        e.preventDefault();
         const errorDiv = document.getElementById('authError');
+        const successDiv = document.getElementById('authSuccess');
         const submitBtn = e.target.querySelector('button[type="submit"]');
 
         errorDiv.textContent = '';
+        successDiv.textContent = '';
         submitBtn.disabled = true;
 
-        const result = await (isLogin
-            ? store.login(username, password)
-            : store.signup(username, email, password));
+        let result;
+        const username = document.getElementById('authUsername')?.value?.trim();
+        const password = document.getElementById('authPassword')?.value;
+        const email = document.getElementById('authEmail')?.value?.trim();
+        const otp = document.getElementById('authOTP')?.value?.trim();
+
+        if (mode === 'login') {
+            result = await store.login(username, password);
+        } else if (mode === 'signup') {
+            result = await store.signup(username, email, password);
+            if (result.success) {
+                renderAuthForm('verify');
+                document.getElementById('authUsername').value = username;
+                document.getElementById('authSuccess').textContent = result.message;
+                return;
+            }
+        } else if (mode === 'verify') {
+            result = await store.verifyEmail(username, otp);
+            if (result.success) {
+                renderAuthForm('login');
+                document.getElementById('authUsername').value = username;
+                document.getElementById('authSuccess').textContent = result.message;
+                return;
+            }
+        } else if (mode === 'forgot') {
+            result = await store.forgotPassword(email);
+            if (result.success) {
+                renderAuthForm('reset');
+                document.getElementById('authEmail').value = email;
+                document.getElementById('authSuccess').textContent = result.message;
+                return;
+            }
+        } else if (mode === 'reset') {
+            result = await store.resetPassword(email, otp, password);
+            if (result.success) {
+                renderAuthForm('login');
+                document.getElementById('authSuccess').textContent = result.message;
+                return;
+            }
+        }
 
         submitBtn.disabled = false;
 
@@ -108,6 +185,16 @@ document.addEventListener('DOMContentLoaded', () => {
             renderUserControls();
         } else {
             errorDiv.textContent = result.message;
+            if (result.needsVerification) {
+                const verifyLink = document.createElement('p');
+                verifyLink.className = 'toggle-auth';
+                verifyLink.innerHTML = `<span class="link-btn" style="color:var(--color-accent)">Verify your email now</span>`;
+                verifyLink.onclick = () => {
+                    renderAuthForm('verify');
+                    document.getElementById('authUsername').value = username;
+                };
+                errorDiv.appendChild(verifyLink);
+            }
         }
     }
 
@@ -159,11 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    window.onclick = (e) => {
-        if (e.target.classList.contains('modal')) {
-            e.target.classList.add('hidden');
-        }
-    };
+    // window.onclick removed to prevent closing on backdrop click as per user request
 
     createEventForm.addEventListener('submit', async (e) => {
         e.preventDefault();

@@ -132,15 +132,16 @@ function openCreateForm(dateStr) {
     let limitHtml = '';
 
     if (user && user.role !== 'admin') {
-        // Enforce limit of 2 events per DAY (based on start date)
-        const userEventsOnDate = store.state.events.filter(e =>
+        const todayStr = Utils.formatDate(new Date());
+        // Enforce limit of 2 events per DAY (based on creation date)
+        const userEventsToday = store.state.events.filter(e =>
             e.createdBy === user.username &&
-            Utils.formatDate(e.startDate) === dateStr
+            e.createdAt && Utils.formatDate(e.createdAt) === todayStr
         );
-        const used = userEventsOnDate.length;
-        const max = 2; // Match store logic
+        const used = userEventsToday.length;
+        const max = 2;
 
-        limitHtml = `<div style="color:var(--color-secondary); font-weight:bold;">Daily Vibe Count: ${used} / ${max}</div>`;
+        limitHtml = `<div style="color:var(--color-secondary); font-weight:bold;">Vibes Posted Today: ${used} / ${max}</div>`;
 
         if (used >= max) {
             limitHtml += `<div style="color:#ff4444; font-size:0.9rem; margin-top:5px;">You've reached your daily limit of ${max} vibes!</div>`;
@@ -149,11 +150,33 @@ function openCreateForm(dateStr) {
             submitBtn.textContent = 'Limit Reached';
         } else {
             const remaining = max - used;
-            limitHtml += `<div style="color:var(--color-text-muted); font-size:0.9rem;">You can post ${remaining} more vibe${remaining !== 1 ? 's' : ''} for this day.</div>`;
+            limitHtml += `<div style="color:var(--color-text-muted); font-size:0.9rem;">You can post ${remaining} more vibe${remaining !== 1 ? 's' : ''} today.</div>`;
         }
     } else if (user && user.role === 'admin') {
         limitHtml = `<div style="color:var(--color-accent); font-weight:bold;">Daily Vibes: Unlimited (Admin Mode)</div>`;
     }
+
+    // Default Times (Now and Now + 1h, rounded to nearest 10 mins)
+    const now = new Date();
+    const roundToNearest10 = (date) => {
+        const minutes = date.getMinutes();
+        const rounded = Math.ceil(minutes / 10) * 10;
+        const newDate = new Date(date);
+        newDate.setMinutes(rounded, 0, 0);
+        return newDate;
+    };
+
+    const startTime = roundToNearest10(now);
+    const endTime = new Date(startTime);
+    endTime.setHours(endTime.getHours() + 1);
+
+    const formatTime = (date) => {
+        return date.getHours().toString().padStart(2, '0') + ':' +
+            date.getMinutes().toString().padStart(2, '0');
+    };
+
+    document.getElementById('eventStartTime').value = formatTime(startTime);
+    document.getElementById('eventEndTime').value = formatTime(endTime);
 
     limitContainer.innerHTML = limitHtml;
 
